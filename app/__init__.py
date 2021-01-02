@@ -1,5 +1,7 @@
 from flask import Flask, render_template
+from flask_cors import CORS
 from . import db
+from . import api
 
 import os
 
@@ -15,7 +17,11 @@ def create_app():
     app.config.from_mapping(
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
+
     db.init_app(app)
+
+    app.register_blueprint(api.bp)
     
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
