@@ -15,7 +15,7 @@ def create_app():
         static_url_path=''
     )
     app.config.from_mapping(
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite3'),
     )
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 

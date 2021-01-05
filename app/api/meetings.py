@@ -16,7 +16,7 @@ def create(data):
         error = 'Date and time is reqired'
     else:    
         try:
-            date = datetime.datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M')
+            datetime.datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M')
         except ValueError:
             error = 'Datetime string is invalid'
     
@@ -27,6 +27,16 @@ def create(data):
         )
         db.commit()
         
-        return {'success': True, 'error': error}
+        return {'success': True, 'error': error, 'data': None}
     else:
-        return {'success': False, 'error': error}
+        return {'success': False, 'error': error, 'data': None}
+
+
+def list():
+    db = get_db()
+    meetings = db.execute('SELECT * FROM meeting').fetchall()
+    return {
+        'success': True,
+        'error': None,
+        'data': [dict(meeting) for meeting in meetings]
+    }
