@@ -15,7 +15,13 @@ def create_app():
     app.config.from_mapping(
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite3'),
     )
+    
     CORS(app, resources={r"/api/*": {"origins": "*"}})
+    
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        pass
 
     db.init_app(app)
 
