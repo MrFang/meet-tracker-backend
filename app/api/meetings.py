@@ -69,3 +69,35 @@ def get_meeting(request_data):
             'error': error,
             'data': None
         }
+
+
+def delete(request_data):
+    id = request_data.get('id')
+    db = get_db()
+    error = None
+    meeting= None
+
+    if id is None:
+        error = 'Meeting ID is required'
+    
+    if error is None:
+        meeting = db.execute('SELECT * FROM meeting WHERE id = ?', (id,)).fetchone()
+
+        if meeting is None:
+            error = 'There is no meeting with such ID'
+    
+    if error is None:
+        db.execute('DELETE FROM meeting WHERE id = ?', (id,))
+        db.commit()
+
+        return {
+            'success': True,
+            'error': error,
+            'data': None
+        }
+    else:
+        return {
+            'success': False,
+            'error': error,
+            'data': None
+        }

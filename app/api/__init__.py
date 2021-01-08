@@ -17,6 +17,9 @@ def meetings_endpoint(action):
     elif action == 'create' and request.method == 'POST':
         resp_data = meetings.create(request.json)
         return response(resp_data)
+    elif action == 'delete' and request.method == 'DELETE':
+        resp_data = meetings.delete(request.json)
+        return response(resp_data)
     else:
         return response({ 'success': False, 'error': 'Bad request or method', 'data': None })
 
