@@ -11,6 +11,9 @@ def meetings_endpoint(action):
     if action == 'list' and request.method == 'GET':
         resp_data = meetings.list()
         return response(resp_data)
+    elif action == 'get' and request.method == 'GET':
+        resp_data = meetings.get_meeting(request.args)
+        return response(resp_data)
     elif action == 'create' and request.method == 'POST':
         resp_data = meetings.create(request.json)
         return response(resp_data)

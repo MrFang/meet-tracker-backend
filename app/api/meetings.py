@@ -4,9 +4,9 @@ from app.db import get_db
 import datetime
 
 
-def create(data):
-    title = data.get('title')
-    datetime_string = data.get('datetime')
+def create(request_data):
+    title = request_data.get('title')
+    datetime_string = request_data.get('datetime')
     db = get_db()
     error = None
 
@@ -40,3 +40,32 @@ def list():
         'error': None,
         'data': [dict(meeting) for meeting in meetings]
     }
+
+
+def get_meeting(request_data):
+    id = request_data.get('id')
+    db = get_db()
+    error = None
+    meeting = None
+
+    if id is None:
+        error = 'Meeting ID is required'
+    
+    if error is None:
+        meeting = db.execute('SELECT * FROM meeting WHERE id = ?', (id,)).fetchone()
+        
+        if meeting is None:
+            error = 'There is no meeting with such ID'
+    
+    if error is None:
+        return {
+            'success': True,
+            'error': error,
+            'data': dict(meeting)
+        }
+    else:
+        return {
+            'success': False,
+            'error': error,
+            'data': None
+        }
