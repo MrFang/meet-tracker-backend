@@ -1,7 +1,15 @@
 DROP TABLE IF EXISTS meeting;
+DROP TABLE IF EXISTS contact;
 
 CREATE TABLE meeting (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
   datetime TEXT NOT NULL
+);
+
+CREATE TABLE contact (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  first_name TEXT NOT NULL,
+  second_name TEXT,
+  telephone TEXT
 );
