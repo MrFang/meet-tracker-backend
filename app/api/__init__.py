@@ -31,6 +31,9 @@ def contacts_endpoint(action):
     if action == 'list' and request.method == 'GET':
         resp_data = contacts.list()
         return response(resp_data)
+    elif action == 'create' and request.method == 'POST':
+        resp_data = contacts.create(request.json)
+        return response(resp_data)
     else:
         return response({ 'success': False, 'error': 'Bad request or method', 'data': None })
 
