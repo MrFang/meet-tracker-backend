@@ -42,7 +42,7 @@ def list():
     }
 
 
-def get_meeting(request_data):
+def get(request_data):
     id = request_data.get('id')
     db = get_db()
     error = None
@@ -50,8 +50,7 @@ def get_meeting(request_data):
 
     if id is None:
         error = 'Meeting ID is required'
-    
-    if error is None:
+    else:
         meeting = db.execute('SELECT * FROM meeting WHERE id = ?', (id,)).fetchone()
         
         if meeting is None:

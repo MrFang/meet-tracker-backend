@@ -1,3 +1,4 @@
+from os import error
 from app.db import get_db
 
 def list():
@@ -30,6 +31,34 @@ def create(request_data):
             'success': True,
             'error': error,
             'data': None
+        }
+    else:
+        return {
+            'success': False,
+            'error': error,
+            'data': None
+        }
+
+
+def get(request_data):
+    id = request_data.get('id')
+    db = get_db()
+    error = None
+    contact = None
+
+    if id is None:
+        error = 'Contact ID is required'
+    else:
+        contact = db.execute('SELECT * FROM contact WHERE id = ?', (id,)).fetchone()
+        
+        if contact is None:
+            error = 'No contact with such ID'
+    
+    if error is None:
+        return {
+            'success': True,
+            'error': error,
+            'data': dict(contact)
         }
     else:
         return {

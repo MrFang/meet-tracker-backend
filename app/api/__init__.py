@@ -12,7 +12,7 @@ def meetings_endpoint(action):
         resp_data = meetings.list()
         return response(resp_data)
     elif action == 'get' and request.method == 'GET':
-        resp_data = meetings.get_meeting(request.args)
+        resp_data = meetings.get(request.args)
         return response(resp_data)
     elif action == 'create' and request.method == 'POST':
         resp_data = meetings.create(request.json)
@@ -30,6 +30,9 @@ def meetings_endpoint(action):
 def contacts_endpoint(action):
     if action == 'list' and request.method == 'GET':
         resp_data = contacts.list()
+        return response(resp_data)
+    if action == 'get' and request.method == 'GET':
+        resp_data = contacts.get(request.args)
         return response(resp_data)
     elif action == 'create' and request.method == 'POST':
         resp_data = contacts.create(request.json)
