@@ -83,10 +83,53 @@ def delete(request_data):
             .fetchone()
 
         if contact is None:
-            error = 'No contact with such ID'
+            error = 'There is no contact with such ID'
 
     if error is None:
         db.execute('DELETE FROM contact WHERE id = ?', (id,))
+        db.commit()
+
+        return {
+            'success': True,
+            'error': error,
+            'data': None
+        }
+    else:
+        return {
+            'success': False,
+            'error': error,
+            'data': None
+        }
+
+
+def update(request_data):
+    id = request_data.get('id')
+    first_name = request_data.get('first_name')
+    second_name = request_data.get('second_name')
+    telephone = request_data.get('telephone')
+    db = get_db()
+    error = None
+
+    if id is None:
+        error = 'Contact ID is required'
+    elif first_name is None:
+        error = 'First name is required'
+    else:
+        contact = db.execute('SELECT * FROM contact WHERE id = ?', (id,)) \
+            .fetchone()
+
+        if contact is None:
+            error = 'There is no contact with such ID'
+
+    if error is None:
+        db.execute(
+            'UPDATE contact SET ' +
+            'first_name = ?, ' +
+            'second_name = ?, ' +
+            'telephone = ? ' +
+            'WHERE id = ?',
+            (first_name, second_name, telephone, id)
+        )
         db.commit()
 
         return {

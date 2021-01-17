@@ -43,6 +43,9 @@ def contacts_endpoint(action):
     elif action == 'create' and request.method == 'POST':
         resp_data = contacts.create(request.json)
         return response(resp_data)
+    elif action == 'update' and request.method == 'PUT':
+        resp_data = contacts.update(request.json)
+        return response(resp_data)
     elif action == 'delete' and request.method == 'DELETE':
         resp_data = contacts.delete(request.json)
         return response(resp_data)
