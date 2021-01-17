@@ -1,5 +1,5 @@
-from os import error
 from app.db import get_db
+
 
 def list():
     db = get_db()
@@ -9,6 +9,7 @@ def list():
         'error': None,
         'data': [dict(contact) for contact in contacts]
     }
+
 
 def create(request_data):
     first_name = request_data.get('first_name')
@@ -22,7 +23,8 @@ def create(request_data):
 
     if error is None:
         db.execute(
-            'INSERT INTO contact (first_name, second_name, telephone) VALUES (?, ?, ?)',
+            'INSERT INTO contact (first_name, second_name, telephone) ' +
+            'VALUES (?, ?, ?)',
             (first_name, second_name, telephone)
         )
         db.commit()
@@ -49,11 +51,12 @@ def get(request_data):
     if id is None:
         error = 'Contact ID is required'
     else:
-        contact = db.execute('SELECT * FROM contact WHERE id = ?', (id,)).fetchone()
-        
+        contact = db.execute('SELECT * FROM contact WHERE id = ?', (id,)) \
+            .fetchone()
+
         if contact is None:
             error = 'No contact with such ID'
-    
+
     if error is None:
         return {
             'success': True,

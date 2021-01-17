@@ -6,6 +6,7 @@ import json
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
+
 @bp.route('/meetings/<action>', methods=('GET', 'POST', 'PUT', 'DELETE'))
 def meetings_endpoint(action):
     if action == 'list' and request.method == 'GET':
@@ -24,7 +25,12 @@ def meetings_endpoint(action):
         resp_data = meetings.delete(request.json)
         return response(resp_data)
     else:
-        return response({ 'success': False, 'error': 'Bad request or method', 'data': None })
+        return response({
+            'success': False,
+            'error': 'Bad request or method',
+            'data': None
+        })
+
 
 @bp.route('contacts/<action>', methods=('GET', 'POST', 'PUT', 'DELETE'))
 def contacts_endpoint(action):
@@ -38,11 +44,19 @@ def contacts_endpoint(action):
         resp_data = contacts.create(request.json)
         return response(resp_data)
     else:
-        return response({ 'success': False, 'error': 'Bad request or method', 'data': None })
+        return response({
+            'success': False,
+            'error': 'Bad request or method',
+            'data': None
+        })
 
 
 def response(data):
     if data['success']:
         return jsonify(data)
     else:
-        return Response(json.dumps(data), status=400, mimetype='application/json')
+        return Response(
+            json.dumps(data),
+            status=400,
+            mimetype='application/json'
+        )

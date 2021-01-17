@@ -1,4 +1,3 @@
-from os import error
 from app.db import get_db
 
 import datetime
@@ -14,19 +13,19 @@ def create(request_data):
         error = 'Title is required'
     elif datetime_string is None:
         error = 'Date and time is reqired'
-    else:    
+    else:
         try:
             datetime.datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M')
         except ValueError:
             error = 'Datetime string is invalid'
-    
+
     if error is None:
         db.execute(
             'INSERT INTO meeting (title, datetime) VALUES (?, ?)',
             (title, datetime_string)
         )
         db.commit()
-        
+
         return {'success': True, 'error': error, 'data': None}
     else:
         return {'success': False, 'error': error, 'data': None}
@@ -51,11 +50,12 @@ def get(request_data):
     if id is None:
         error = 'Meeting ID is required'
     else:
-        meeting = db.execute('SELECT * FROM meeting WHERE id = ?', (id,)).fetchone()
-        
+        meeting = db.execute('SELECT * FROM meeting WHERE id = ?', (id,)) \
+            .fetchone()
+
         if meeting is None:
             error = 'There is no meeting with such ID'
-    
+
     if error is None:
         return {
             'success': True,
@@ -77,13 +77,14 @@ def delete(request_data):
 
     if id is None:
         error = 'Meeting ID is required'
-    
+
     if error is None:
-        meeting = db.execute('SELECT * FROM meeting WHERE id = ?', (id,)).fetchone()
+        meeting = db.execute('SELECT * FROM meeting WHERE id = ?', (id,)) \
+            .fetchone()
 
         if meeting is None:
             error = 'There is no meeting with such ID'
-    
+
     if error is None:
         db.execute('DELETE FROM meeting WHERE id = ?', (id,))
         db.commit()
@@ -119,13 +120,14 @@ def update(request_data):
             datetime.datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M')
         except ValueError:
             error = 'Datetime string is invalid'
-    
+
     if error is None:
-        meeting = db.execute('SELECT * FROM meeting WHERE id = ?', (id,)).fetchone()
+        meeting = db.execute('SELECT * FROM meeting WHERE id = ?', (id,)) \
+            .fetchone()
 
         if meeting is None:
             error = 'There is no meeting with such ID'
-    
+
     if error is None:
         db.execute(
             'UPDATE meeting SET ' +
@@ -141,10 +143,9 @@ def update(request_data):
             'error': error,
             'data': None
         }
-    else: 
+    else:
         return {
             'success': False,
             'error': error,
             'data': None
         }
-
