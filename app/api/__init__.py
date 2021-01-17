@@ -43,6 +43,9 @@ def contacts_endpoint(action):
     elif action == 'create' and request.method == 'POST':
         resp_data = contacts.create(request.json)
         return response(resp_data)
+    elif action == 'delete' and request.method == 'DELETE':
+        resp_data = contacts.delete(request.json)
+        return response(resp_data)
     else:
         return response({
             'success': False,
@@ -52,11 +55,18 @@ def contacts_endpoint(action):
 
 
 def response(data):
-    if data['success']:
-        return jsonify(data)
-    else:
+    try:
+        if data['success']:
+            return jsonify(data)
+        else:
+            return Response(
+                json.dumps(data),
+                status=400,
+                mimetype='application/json'
+            )
+    except BaseException as e:
         return Response(
-            json.dumps(data),
-            status=400,
+            json.dumps(str(e)),
+            status=500,
             mimetype='application/json'
         )

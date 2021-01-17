@@ -69,3 +69,34 @@ def get(request_data):
             'error': error,
             'data': None
         }
+
+
+def delete(request_data):
+    id = request_data.get('id')
+    db = get_db()
+    error = None
+
+    if id is None:
+        error = 'Contact ID is required'
+    else:
+        contact = db.execute('SELECT * FROM contact WHERE id = ?', (id,)) \
+            .fetchone()
+
+        if contact is None:
+            error = 'No contact with such ID'
+
+    if error is None:
+        db.execute('DELETE FROM contact WHERE id = ?', (id,))
+        db.commit()
+
+        return {
+            'success': True,
+            'error': error,
+            'data': None
+        }
+    else:
+        return {
+            'success': False,
+            'error': error,
+            'data': None
+        }
