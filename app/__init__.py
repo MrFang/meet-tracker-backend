@@ -16,7 +16,7 @@ def create_app():
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite3'),
     )
 
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r'/api/*': {'origins': '*'}})
 
     try:
         os.makedirs(app.instance_path)
@@ -29,7 +29,6 @@ def create_app():
 
     @app.route('/css/<path:path>')
     def serve_css(path):
-        print('path', path)
         return app.send_static_file('css/' + path)
 
     @app.route('/js/<path:path>')
