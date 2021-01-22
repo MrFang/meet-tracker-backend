@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
-from . import meetings, contacts
+from . import meetings, contacts, search
 
 import json
 
@@ -48,6 +48,19 @@ def contacts_endpoint(action):
         return response(resp_data)
     elif action == 'delete' and request.method == 'DELETE':
         resp_data = contacts.delete(request.json)
+        return response(resp_data)
+    else:
+        return response({
+            'success': False,
+            'error': 'Bad request or method',
+            'data': None
+        })
+
+
+@bp.route('search/<action>')
+def search_endpoint(action):
+    if action == 'contacts':
+        resp_data = search.contacts(request.args)
         return response(resp_data)
     else:
         return response({
