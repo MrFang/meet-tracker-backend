@@ -1,7 +1,9 @@
 from app.db import get_db
+from app.api.auth import token_required
 
 
-def contacts(request_data):
+@token_required
+def contacts(user_id, request_data):
     query = request_data.get('q')
     db = get_db()
     error = None
@@ -13,17 +15,20 @@ def contacts(request_data):
         contacts = db.execute(
             'SELECT * FROM contact ' +
             'WHERE (first_name || \' \' || IFNULL(second_name, \'\')) ' +
-            'LIKE (? || \'%\')',
-            (query,)
+            'LIKE (? || \'%\') ' +
+            'AND user_id = ?',
+            (query, user_id)
         ).fetchall()
 
         return {
+            'status': 200,
             'success': True,
             'error': error,
             'data': [dict(contact) for contact in contacts]
         }
     else:
         return {
+            'status': 400,
             'success': False,
             'error': error,
             'data': None

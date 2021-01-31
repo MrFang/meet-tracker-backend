@@ -1,10 +1,34 @@
-from flask import Blueprint, request, jsonify, Response
-from . import meetings, contacts, search
+from flask import Blueprint, request, Response
+from . import auth, meetings, contacts, search
 
 import json
 
 
 bp = Blueprint('api', __name__, url_prefix='/api')
+
+
+@bp.route('/auth/<action>', methods=('GET', 'POST'))
+def auth_endpoint(action):
+    if action == 'register' and request.method == 'POST':
+        resp_data = auth.register(request.json)
+        return response(resp_data)
+    if action == 'login' and request.method == 'POST':
+        resp_data = auth.login(request.json)
+        return response(resp_data)
+    if action == 'logout' and request.method == 'POST':
+        resp_data = auth.logout(request.json)
+        return response(resp_data)
+    if action == 'refresh' and request.method == 'GET':
+        [_, token] = request.headers.get('Authorization').split(' ')
+        resp_data = auth.refresh(token)
+        return response(resp_data)
+    else:
+        return response({
+            'status': 400,
+            'success': False,
+            'error': 'Bad request or method',
+            'data': None
+        })
 
 
 @bp.route('/meetings/<action>', methods=('GET', 'POST', 'PUT', 'DELETE'))
@@ -26,6 +50,7 @@ def meetings_endpoint(action):
         return response(resp_data)
     else:
         return response({
+            'status': 400,
             'success': False,
             'error': 'Bad request or method',
             'data': None
@@ -51,6 +76,7 @@ def contacts_endpoint(action):
         return response(resp_data)
     else:
         return response({
+            'status': 400,
             'success': False,
             'error': 'Bad request or method',
             'data': None
@@ -64,6 +90,7 @@ def search_endpoint(action):
         return response(resp_data)
     else:
         return response({
+            'status': 400,
             'success': False,
             'error': 'Bad request or method',
             'data': None
@@ -71,18 +98,11 @@ def search_endpoint(action):
 
 
 def response(data):
-    try:
-        if data['success']:
-            return jsonify(data)
-        else:
-            return Response(
-                json.dumps(data),
-                status=400,
-                mimetype='application/json'
-            )
-    except BaseException as e:
-        return Response(
-            json.dumps(str(e)),
-            status=500,
-            mimetype='application/json'
-        )
+    status = data.pop('status')
+    resp = Response(
+        json.dumps(data),
+        status=status,
+        mimetype='application/json'
+    )
+
+    return(resp)

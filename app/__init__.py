@@ -13,10 +13,12 @@ def create_app():
         static_folder='../dist',
     )
     app.config.from_mapping(
+        SECRET_KEY='secret',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite3'),
     )
 
-    CORS(app, resources={r'/api/*': {'origins': '*'}})
+    if os.environ['FLASK_ENV'] == 'development':
+        CORS(app, resources={r'/api/*': {'origins': '*'}})
 
     try:
         os.makedirs(app.instance_path)
