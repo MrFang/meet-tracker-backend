@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 import functools
 
 
-def check_token(jwt_token):
+def check_token(jwt_token, allowExpired=False):
     db = get_db()
     tokens = db.execute(
         'SELECT * FROM revoked_token WHERE token = ?',
@@ -25,7 +25,10 @@ def check_token(jwt_token):
         payload = jwt.decode(
             jwt_token,
             current_app.config['SECRET_KEY'],
-            algorithms=['HS256']
+            algorithms=['HS256'],
+            options={
+                'verify_exp': not allowExpired
+            }
         )
 
         return {
@@ -33,7 +36,7 @@ def check_token(jwt_token):
             'error': None,
             'data': payload
         }
-    except (UnicodeDecodeError, jwt.ExpiredSignatureError):
+    except (UnicodeDecodeError, jwt.ExpiredSignatureError, jwt.DecodeError):
         return {
             'success': False,
             'error': 'Token invalid',
@@ -199,6 +202,10 @@ def logout(request_data):
         error = 'Access token is required'
     elif refresh_token is None:
         error = 'Refresh token is required'
+    elif not check_token(access_token, allowExpired=True)['success']:
+        error = 'Access token is invalid'
+    elif not check_token(refresh_token, allowExpired=True)['success']:
+        error = 'Refresh token is invalid'
 
     if error is None:
         db.execute(
