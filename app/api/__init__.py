@@ -19,8 +19,7 @@ def auth_endpoint(action):
         resp_data = auth.logout(request.json)
         return response(resp_data)
     if action == 'refresh' and request.method == 'GET':
-        [_, token] = request.headers.get('Authorization').split(' ')
-        resp_data = auth.refresh(token)
+        resp_data = auth.refresh()
         return response(resp_data)
     else:
         return response({

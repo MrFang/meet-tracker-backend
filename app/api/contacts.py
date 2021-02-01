@@ -2,7 +2,7 @@ from app.db import get_db
 from app.api.auth import token_required
 
 
-@token_required
+@token_required()
 def list(user_id):
     db = get_db()
     contacts = db.execute(
@@ -17,7 +17,7 @@ def list(user_id):
     }
 
 
-@token_required
+@token_required()
 def create(user_id, request_data):
     first_name = request_data.get('first_name')
     second_name = request_data.get('second_name')
@@ -52,7 +52,7 @@ def create(user_id, request_data):
         }
 
 
-@token_required
+@token_required()
 def get(user_id, request_data):
     id = request_data.get('id')
     db = get_db()
@@ -86,7 +86,7 @@ def get(user_id, request_data):
         }
 
 
-@token_required
+@token_required()
 def delete(user_id, request_data):
     id = request_data.get('id')
     db = get_db()
@@ -125,7 +125,7 @@ def delete(user_id, request_data):
         }
 
 
-@token_required
+@token_required()
 def update(user_id, request_data):
     id = request_data.get('id')
     first_name = request_data.get('first_name')

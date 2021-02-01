@@ -2,7 +2,7 @@ from app.db import get_db
 from app.api.auth import token_required
 
 
-@token_required
+@token_required()
 def contacts(user_id, request_data):
     query = request_data.get('q')
     db = get_db()

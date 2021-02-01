@@ -4,7 +4,7 @@ from app.api.auth import token_required
 import datetime
 
 
-@token_required
+@token_required()
 def create(user_id, request_data):
     title = request_data.get('title')
     datetime_string = request_data.get('datetime')
@@ -43,7 +43,7 @@ def create(user_id, request_data):
         }
 
 
-@token_required
+@token_required()
 def list(user_id):
     db = get_db()
     meetings = db.execute(
@@ -58,7 +58,7 @@ def list(user_id):
     }
 
 
-@token_required
+@token_required()
 def get(user_id, request_data):
     id = request_data.get('id')
     db = get_db()
@@ -92,7 +92,7 @@ def get(user_id, request_data):
         }
 
 
-@token_required
+@token_required()
 def delete(user_id, request_data):
     id = request_data.get('id')
     db = get_db()
@@ -132,7 +132,7 @@ def delete(user_id, request_data):
         }
 
 
-@token_required
+@token_required()
 def update(user_id, request_data):
     id = request_data.get('id')
     title = request_data.get('title')
@@ -167,7 +167,7 @@ def update(user_id, request_data):
             'title = ?, ' +
             'datetime = ? ' +
             'WHERE id = ? ' +
-            'AND user_id = ?'
+            'AND user_id = ?',
             (title, datetime_string, id, user_id)
         )
         db.commit()

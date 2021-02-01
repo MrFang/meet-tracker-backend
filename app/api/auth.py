@@ -4,7 +4,58 @@ import bcrypt
 import jwt
 
 from datetime import datetime, timezone, timedelta
-import functools
+
+
+def token_required(access=True):
+    def wrapper(view):
+        def wrapped_view(*args, **kwargs):
+            header = request.headers.get('Authorization', '')
+
+            if header is not None:
+                auth_type, token = '', ''
+                try:
+                    [auth_type, token] = header.split(' ')
+                except ValueError:
+                    return {
+                        'status': 401,
+                        'success': False,
+                        'error': 'Invalid header',
+                        'data': None
+                    }
+                check_result = check_token(token)
+
+                if (
+                    auth_type == 'Bearer' and
+                    check_result['success'] and
+                    (
+                        (check_result['data']['access'] and access) or
+                        (not check_result['data']['access'] and not access)
+                    )
+                ):
+                    print(*args)
+                    return view(
+                        check_result['data']['user_id'],
+                        *args,
+                        **kwargs
+                    )
+                else:
+                    return {
+                        'status': 401,
+                        'success': False,
+                        'error': check_result['error'] or 'Login required',
+                        'data': None
+                    }
+
+            else:
+                return {
+                    'status': 401,
+                    'success': False,
+                    'error': '"Authorizaton" header required',
+                    'data': None
+                }
+
+        return wrapped_view
+    return wrapper
 
 
 def check_token(jwt_token, allowExpired=False):
@@ -159,37 +210,27 @@ def login(request_data):
         }
 
 
-def refresh(refresh_token):
-    check = check_token(refresh_token)
+@token_required(access=False)
+def refresh(user_id,):
+    now = datetime.now(timezone.utc)
+    expires = now + timedelta(minutes=15)
+    secret = current_app.config['SECRET_KEY']
 
-    if check['success'] and not check['data']['access']:
-        now = datetime.now(timezone.utc)
-        expires = now + timedelta(minutes=15)
-        user_id = check['data']['user_id']
-        secret = current_app.config['SECRET_KEY']
+    payload = {
+        'user_id': user_id,
+        'iat': now.timestamp(),
+        'exp': expires.timestamp(),
+        'access': True
+    }
 
-        payload = {
-            'user_id': user_id,
-            'iat': now.timestamp(),
-            'exp': expires.timestamp(),
-            'access': True
+    return {
+        'status': 200,
+        'success': True,
+        'error': None,
+        'data': {
+            'token': jwt.encode(payload, secret, algorithm='HS256')
         }
-
-        return {
-            'status': 200,
-            'success': True,
-            'error': None,
-            'data': {
-                'token': jwt.encode(payload, secret, algorithm='HS256')
-            }
-        }
-    else:
-        return {
-            'status': 400,
-            'success': False,
-            'error': check['error'] or 'Token invalid',
-            'data': None
-        }
+    }
 
 
 def logout(request_data):
@@ -228,46 +269,3 @@ def logout(request_data):
             'error': error,
             'data': None
         }
-
-
-def token_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        header = request.headers.get('Authorization', '')
-
-        if header is not None:
-            auth_type, token = '', ''
-            try:
-                [auth_type, token] = header.split(' ')
-            except ValueError:
-                return {
-                    'status': 401,
-                    'success': False,
-                    'error': 'Invalid header',
-                    'data': None
-                }
-            check = check_token(token)
-
-            if (
-                auth_type == 'Bearer' and
-                check['success'] and
-                check['data']['access']
-            ):
-                return view(check['data']['user_id'], **kwargs)
-            else:
-                return {
-                    'status': 401,
-                    'success': False,
-                    'error': check['error'] or 'Login required',
-                    'data': None
-                }
-
-        else:
-            return {
-                'status': 401,
-                'success': False,
-                'error': '"Authorizaton" header required',
-                'data': None
-            }
-
-    return wrapped_view
