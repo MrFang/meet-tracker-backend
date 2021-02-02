@@ -153,16 +153,21 @@ def login(request_data):
     elif password is None or len(password) == 0:
         error = 'Password is required'
     else:
-        user = dict(db.execute(
+        user = db.execute(
             'SELECT * FROM user WHERE username = ?',
             (username,)
-        ).fetchone())
+        ).fetchone()
 
-        if not bcrypt.checkpw(
-            password.encode('utf-8'),
-            user['password_hash']
-        ):
-            error = 'Password is incorrect'
+        if user is None:
+            error = 'Login is incorrect'
+        else:
+            user = dict(user)
+
+            if not bcrypt.checkpw(
+                password.encode('utf-8'),
+                user['password_hash']
+            ):
+                error = 'Password is incorrect'
 
     if error is None:
         now = datetime.now(timezone.utc)
