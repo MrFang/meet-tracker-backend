@@ -15,7 +15,7 @@ def contacts(user_id, request_data):
         contacts = db.execute(
             'SELECT * FROM contact ' +
             'WHERE (first_name || \' \' || IFNULL(second_name, \'\')) ' +
-            'LIKE (? || \'%\') ' +
+            'LIKE (\'%\' || ? || \'%\') ' +
             'AND user_id = ?',
             (query, user_id)
         ).fetchall()

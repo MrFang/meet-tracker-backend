@@ -3,11 +3,14 @@ from app.api.auth import token_required
 
 import datetime
 
+# TODO: Error handling, contacts in meeting update
+
 
 @token_required()
 def create(user_id, request_data):
     title = request_data.get('title')
     datetime_string = request_data.get('datetime')
+    contacts = request_data.get('contacts')
     db = get_db()
     error = None
 
@@ -15,6 +18,8 @@ def create(user_id, request_data):
         error = 'Title is required'
     elif datetime_string is None:
         error = 'Date and time is reqired'
+    elif contacts is None:
+        error = 'Contacts must be an array'
     else:
         try:
             datetime.datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M')
@@ -26,6 +31,19 @@ def create(user_id, request_data):
             'INSERT INTO meeting (title, datetime, user_id) VALUES (?, ?, ?)',
             (title, datetime_string, user_id)
         )
+
+        meeting_id = db.execute(
+            'SELECT MAX(id) AS id FROM meeting WHERE user_id = ?',
+            (user_id,)
+        ).fetchone()['id']
+
+        for contact in contacts:
+            db.execute(
+                'INSERT INTO meetings_to_contacts (meeting_id, contact_id) '
+                'VALUES (?, ?)',
+                (meeting_id, contact['id'])
+            )
+
         db.commit()
 
         return {
@@ -50,11 +68,20 @@ def list(user_id):
         'SELECT * FROM meeting WHERE user_id = ?',
         (user_id, )
     ).fetchall()
+    data = [dict(meeting) for meeting in meetings]
+    for idx, meeting in enumerate(data):
+        contacts = db.execute(
+            'SELECT contact.id, contact.first_name, contact.second_name '
+            'FROM contact, meetings_to_contacts AS map '
+            'WHERE contact.user_id = ? AND map.meeting_id = ?',
+            (user_id, meeting['id'])
+        ).fetchall()
+        data[idx]['contacts'] = [dict(contact) for contact in contacts]
     return {
         'status': 200,
         'success': True,
         'error': None,
-        'data': [dict(meeting) for meeting in meetings]
+        'data': data
     }
 
 

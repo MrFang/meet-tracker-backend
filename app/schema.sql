@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS meeting;
 DROP TABLE IF EXISTS contact;
 DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS revoked_token;
+DROP TABLE IF EXISTS meetings_to_contacts;
 
 CREATE TABLE user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,6 +25,14 @@ CREATE TABLE contact (
   telephone TEXT,
   user_id INTEGER NOT NULL,
   FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+CREATE TABLE meetings_to_contacts (
+  meeting_id INTEGER NOT NULL,
+  contact_id INTEGER NOT NULL,
+  FOREIGN KEY (meeting_id) REFERENCES meeting(id),
+  FOREIGN KEY (contact_id) REFERENCES contact(id),
+  UNIQUE(meeting_id, contact_id)
 );
 
 CREATE TABLE revoked_token (

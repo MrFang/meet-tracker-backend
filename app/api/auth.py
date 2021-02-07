@@ -32,7 +32,6 @@ def token_required(access=True):
                         (not check_result['data']['access'] and not access)
                     )
                 ):
-                    print(*args)
                     return view(
                         check_result['data']['user_id'],
                         *args,
