@@ -81,6 +81,14 @@ def check_token(jwt_token, allowExpired=False):
             }
         )
 
+        user = db.execute(
+            'SELECT * FROM user WHERE id = ?',
+            (payload['user_id'],)
+        ).fetchone()
+
+        if user is None:
+            raise jwt.DecodeError
+
         return {
             'success': True,
             'error': None,

@@ -1,17 +1,14 @@
+from app.api.contacts import check_contact
 from app.db import get_db
 from app.api.auth import token_required
 
 import datetime
 
-# TODO: Error handling, contacts in meeting update
 
-
-@token_required()
-def create(user_id, request_data):
+def check_meeting(request_data):
     title = request_data.get('title')
     datetime_string = request_data.get('datetime')
     contacts = request_data.get('contacts')
-    db = get_db()
     error = None
 
     if title is None or len(title) == 0:
@@ -25,6 +22,24 @@ def create(user_id, request_data):
             datetime.datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M')
         except ValueError:
             error = 'Datetime string is invalid'
+
+    if error is None:
+        for contact in contacts:
+            contact_error = check_contact(contact)
+            if contact_error is not None:
+                error = 'Error: ' \
+                    + contact_error + ' on contact: ' + str(contact)
+
+    return error
+
+
+@token_required()
+def create(user_id, request_data):
+    title = request_data.get('title')
+    datetime_string = request_data.get('datetime')
+    contacts = request_data.get('contacts')
+    db = get_db()
+    error = check_meeting(request_data)
 
     if error is None:
         db.execute(
@@ -71,8 +86,13 @@ def list(user_id):
     data = [dict(meeting) for meeting in meetings]
     for idx, meeting in enumerate(data):
         contacts = db.execute(
-            'SELECT contact.id, contact.first_name, contact.second_name '
-            'FROM contact, meetings_to_contacts AS map '
+            'SELECT '
+            'contact.id, '
+            'contact.first_name, '
+            'contact.second_name, '
+            'contact.telephone '
+            'FROM contact '
+            'JOIN meetings_to_contacts AS map ON map.contact_id = contact.id '
             'WHERE contact.user_id = ? AND map.meeting_id = ?',
             (user_id, meeting['id'])
         ).fetchall()
@@ -104,11 +124,29 @@ def get(user_id, request_data):
             error = 'There is no meeting with such ID'
 
     if error is None:
+        contacts = db.execute(
+            'SELECT '
+            'contact.id, '
+            'contact.first_name, '
+            'contact.second_name, '
+            'contact.telephone '
+            'FROM contact '
+            'JOIN meetings_to_contacts AS map ON map.contact_id = contact.id '
+            'WHERE contact.user_id = ? AND map.meeting_id = ?',
+            (user_id, id)
+        ).fetchall()
+
+        data = dict(meeting)
+        data['contacts'] = []
+
+        for contact in contacts:
+            data['contacts'].append(dict(contact))
+
         return {
             'status': 200,
             'success': True,
             'error': error,
-            'data': dict(meeting)
+            'data': data
         }
     else:
         return {
@@ -142,6 +180,11 @@ def delete(user_id, request_data):
             'DELETE FROM meeting WHERE id = ? AND user_id = ?',
             (id, user_id)
         )
+        db.execute(
+            'DELETE FROM meetings_to_contacts WHERE meeting_id = ?',
+            (id,)
+        )
+
         db.commit()
 
         return {
@@ -164,20 +207,14 @@ def update(user_id, request_data):
     id = request_data.get('id')
     title = request_data.get('title')
     datetime_string = request_data.get('datetime')
+    contacts = request_data.get('contacts')
     db = get_db()
     error = None
 
     if id is None:
         error = 'Meeting ID is required'
-    elif title is None:
-        error = 'Title is required'
-    elif datetime_string is None:
-        error = 'Datetime is required'
     else:
-        try:
-            datetime.datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M')
-        except ValueError:
-            error = 'Datetime string is invalid'
+        error = check_meeting(request_data)
 
     if error is None:
         meeting = db.execute(
@@ -197,6 +234,33 @@ def update(user_id, request_data):
             'AND user_id = ?',
             (title, datetime_string, id, user_id)
         )
+        existing_contacts_ids = db.execute(
+            'SELECT contact.id '
+            'FROM contact '
+            'JOIN meetings_to_contacts AS map ON contact.id = map.contact_id '
+            'WHERE contact.user_id = ? AND map.meeting_id = ?',
+            (user_id, id)
+        ).fetchall()
+
+        existing_contacts_ids = set(
+            [dict(contact_id)['id'] for contact_id in existing_contacts_ids]
+        )
+        new_contact_ids = set(map(lambda contact: contact['id'], contacts))
+
+        for contact_id in existing_contacts_ids.difference(new_contact_ids):
+            db.execute(
+                'DELETE from meetings_to_contacts '
+                'WHERE meeting_id = ? AND contact_id = ?',
+                (id, contact_id)
+            )
+
+        for contact_id in new_contact_ids.difference(existing_contacts_ids):
+            db.execute(
+                'INSERT INTO meetings_to_contacts (meeting_id, contact_id) '
+                'VALUES (?, ?)',
+                (id, contact_id)
+            )
+
         db.commit()
 
         return {

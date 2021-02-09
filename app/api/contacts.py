@@ -2,6 +2,16 @@ from app.db import get_db
 from app.api.auth import token_required
 
 
+def check_contact(contact_data):
+    first_name = contact_data.get('first_name', None)
+    error = None
+
+    if first_name is None:
+        error = 'First name is required'
+
+    return error
+
+
 @token_required()
 def list(user_id):
     db = get_db()
@@ -23,10 +33,7 @@ def create(user_id, request_data):
     second_name = request_data.get('second_name')
     telephone = request_data.get('telephone')
     db = get_db()
-    error = None
-
-    if first_name is None:
-        error = 'First name is required'
+    error = check_contact(request_data)
 
     if error is None:
         db.execute(
@@ -136,9 +143,10 @@ def update(user_id, request_data):
 
     if id is None:
         error = 'Contact ID is required'
-    elif first_name is None or len(first_name) == 0:
-        error = 'First name is required'
     else:
+        error = check_contact(request_data)
+
+    if error is None:
         contact = db.execute(
             'SELECT * FROM contact WHERE id = ? AND user_id = ?',
             (id, user_id)
