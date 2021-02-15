@@ -32,7 +32,7 @@ CREATE TABLE meetings_to_contacts (
   contact_id INTEGER NOT NULL,
   FOREIGN KEY (meeting_id) REFERENCES meeting(id),
   FOREIGN KEY (contact_id) REFERENCES contact(id),
-  UNIQUE(meeting_id, contact_id)
+  PRIMARY KEY (meeting_id, contact_id)
 );
 
 CREATE TABLE revoked_token (

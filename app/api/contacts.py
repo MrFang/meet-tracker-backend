@@ -115,6 +115,11 @@ def delete(user_id, request_data):
             'DELETE FROM contact WHERE id = ? AND user_id = ?',
             (id, user_id)
         )
+        db.execute(
+            'DELETE FROM meetings_to_contacts WHERE contact_id = ?',
+            (id,)
+        )
+
         db.commit()
 
         return {
