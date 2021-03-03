@@ -77,31 +77,27 @@ def create(user_id, request_data):
 
 
 @token_required()
-def list(user_id):
+def list(user_id, request_data):
     db = get_db()
+    start_date_string = '0000-01-01'
+    end_date_string = '9999-12-31'
+
+    if request_data is not None:
+        start_date_string = request_data.get('start_date', '0000-01-01')
+        end_date_string = request_data.get('end_date', '9999-12-31')
+
     meetings = db.execute(
-        'SELECT * FROM meeting WHERE user_id = ?',
-        (user_id, )
+        'SELECT id, title, datetime FROM meeting '
+        'WHERE user_id = ? '
+        'AND datetime(datetime) BETWEEN datetime(?) AND datetime (?)',
+        (user_id, start_date_string + 'T00:00', end_date_string + 'T23:59')
     ).fetchall()
-    data = [dict(meeting) for meeting in meetings]
-    for idx, meeting in enumerate(data):
-        contacts = db.execute(
-            'SELECT '
-            'contact.id, '
-            'contact.first_name, '
-            'contact.second_name, '
-            'contact.telephone '
-            'FROM contact '
-            'JOIN meetings_to_contacts AS map ON map.contact_id = contact.id '
-            'WHERE contact.user_id = ? AND map.meeting_id = ?',
-            (user_id, meeting['id'])
-        ).fetchall()
-        data[idx]['contacts'] = [dict(contact) for contact in contacts]
+
     return {
         'status': 200,
         'success': True,
         'error': None,
-        'data': data
+        'data': [dict(meeting) for meeting in meetings]
     }
 
 

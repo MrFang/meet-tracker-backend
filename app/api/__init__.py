@@ -33,7 +33,7 @@ def auth_endpoint(action):
 @bp.route('/meetings/<action>', methods=('GET', 'POST', 'PUT', 'DELETE'))
 def meetings_endpoint(action):
     if action == 'list' and request.method == 'GET':
-        resp_data = meetings.list()
+        resp_data = meetings.list(request.args)
         return response(resp_data)
     elif action == 'get' and request.method == 'GET':
         resp_data = meetings.get(request.args)
