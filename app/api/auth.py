@@ -49,7 +49,7 @@ def token_required(access=True):
                 return {
                     'status': 401,
                     'success': False,
-                    'error': '"Authorizaton" header required',
+                    'error': '"Authorization" header required',
                     'data': None
                 }
 
