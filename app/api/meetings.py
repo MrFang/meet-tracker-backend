@@ -93,11 +93,27 @@ def list(user_id, request_data):
         (user_id, start_date_string + 'T00:00', end_date_string + 'T23:59')
     ).fetchall()
 
+    data = [dict(meeting) for meeting in meetings]
+
+    for idx, meeting in enumerate(data):
+        contacts = db.execute(
+            'SELECT '
+            'contact.id, '
+            'contact.first_name, '
+            'contact.second_name, '
+            'contact.telephone '
+            'FROM contact '
+            'JOIN meetings_to_contacts AS map ON map.contact_id = contact.id '
+            'WHERE contact.user_id = ? AND map.meeting_id = ?',
+            (user_id, meeting['id'])
+        ).fetchall()
+        data[idx]['contacts'] = [dict(contact) for contact in contacts]
+
     return {
         'status': 200,
         'success': True,
         'error': None,
-        'data': [dict(meeting) for meeting in meetings]
+        'data': data
     }
 
 
