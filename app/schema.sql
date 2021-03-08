@@ -13,7 +13,8 @@ CREATE TABLE user (
 CREATE TABLE meeting (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
-  datetime TEXT NOT NULL,
+  start_datetime TEXT NOT NULL,
+  end_datetime TEXT NOT NULL,
   user_id INTEGER NOT NULL,
   FOREIGN KEY (user_id) REFERENCES user(id)
 );

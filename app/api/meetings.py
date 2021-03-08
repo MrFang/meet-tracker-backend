@@ -5,23 +5,51 @@ from app.api.auth import token_required
 import datetime
 
 
-def check_meeting(request_data):
+def check_meeting(user_id, request_data):
+    id = request_data.get('id')
     title = request_data.get('title')
-    datetime_string = request_data.get('datetime')
+    start_datetime_string = request_data.get('start_datetime')
     contacts = request_data.get('contacts')
+    end_datetime_string = request_data.get('end_datetime')
     error = None
+    db = get_db()
 
     if title is None or len(title) == 0:
         error = 'Title is required'
-    elif datetime_string is None:
+    elif start_datetime_string is None:
+        error = 'Date and time is reqired'
+    elif end_datetime_string is None:
         error = 'Date and time is reqired'
     elif contacts is None:
         error = 'Contacts must be an array'
     else:
         try:
-            datetime.datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M')
+            datetime.datetime.strptime(start_datetime_string, '%Y-%m-%dT%H:%M')
+            datetime.datetime.strptime(end_datetime_string, '%Y-%m-%dT%H:%M')
         except ValueError:
             error = 'Datetime string is invalid'
+
+    if error is None:
+        meetings = db.execute(
+            'SELECT id FROM meeting '
+            'WHERE user_id = ? '
+            'AND id != ? '
+            'AND ('
+            '(datetime(start_datetime) BETWEEN datetime(?) AND datetime(?)) '
+            'OR (datetime(end_datetime) BETWEEN datetime(?) AND datetime(?))'
+            ')',
+            (
+                user_id,
+                id,
+                start_datetime_string,
+                end_datetime_string,
+                start_datetime_string,
+                end_datetime_string
+            )
+        ).fetchall()
+
+        if len(meetings) > 0:
+            error = 'Meetings cannot collapse'
 
     if error is None:
         for contact in contacts:
@@ -36,15 +64,18 @@ def check_meeting(request_data):
 @token_required()
 def create(user_id, request_data):
     title = request_data.get('title')
-    datetime_string = request_data.get('datetime')
+    start_datetime_string = request_data.get('start_datetime')
     contacts = request_data.get('contacts')
+    end_datetime_string = request_data.get('end_datetime')
     db = get_db()
-    error = check_meeting(request_data)
+    error = check_meeting(user_id, request_data)
 
     if error is None:
         db.execute(
-            'INSERT INTO meeting (title, datetime, user_id) VALUES (?, ?, ?)',
-            (title, datetime_string, user_id)
+            'INSERT INTO meeting '
+            '(title, start_datetime, end_datetime, user_id) '
+            'VALUES (?, ?, ?, ?)',
+            (title, start_datetime_string, end_datetime_string, user_id)
         )
 
         meeting_id = db.execute(
@@ -87,9 +118,9 @@ def list(user_id, request_data):
         end_date_string = request_data.get('end_date', '9999-12-31')
 
     meetings = db.execute(
-        'SELECT id, title, datetime FROM meeting '
+        'SELECT id, title, start_datetime, end_datetime FROM meeting '
         'WHERE user_id = ? '
-        'AND datetime(datetime) BETWEEN datetime(?) AND datetime (?)',
+        'AND datetime(start_datetime) BETWEEN datetime(?) AND datetime (?)',
         (user_id, start_date_string + 'T00:00', end_date_string + 'T23:59')
     ).fetchall()
 
@@ -218,15 +249,16 @@ def delete(user_id, request_data):
 def update(user_id, request_data):
     id = request_data.get('id')
     title = request_data.get('title')
-    datetime_string = request_data.get('datetime')
+    start_datetime_string = request_data.get('start_datetime')
     contacts = request_data.get('contacts')
+    end_datetime_string = request_data.get('end_datetime')
     db = get_db()
     error = None
 
     if id is None:
         error = 'Meeting ID is required'
     else:
-        error = check_meeting(request_data)
+        error = check_meeting(user_id, request_data)
 
     if error is None:
         meeting = db.execute(
@@ -241,10 +273,11 @@ def update(user_id, request_data):
         db.execute(
             'UPDATE meeting SET ' +
             'title = ?, ' +
-            'datetime = ? ' +
+            'start_datetime = ?, ' +
+            'end_datetime = ? ' +
             'WHERE id = ? ' +
             'AND user_id = ?',
-            (title, datetime_string, id, user_id)
+            (title, start_datetime_string, end_datetime_string, id, user_id)
         )
         existing_contacts_ids = db.execute(
             'SELECT contact.id '
