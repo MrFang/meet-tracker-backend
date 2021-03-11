@@ -87,6 +87,9 @@ def search_endpoint(action):
     if action == 'contacts':
         resp_data = search.contacts(request.args)
         return response(resp_data)
+    if action == 'meetings':
+        resp_data = search.meetings(request.args)
+        return response(resp_data)
     else:
         return response({
             'status': 400,
