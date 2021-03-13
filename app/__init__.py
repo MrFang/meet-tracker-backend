@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_cors import CORS
 from . import db
 from . import api
 
@@ -18,6 +17,7 @@ def create_app():
     )
 
     if os.environ['FLASK_ENV'] == 'development':
+        from flask_cors import CORS
         CORS(app, resources={r'/api/*': {'origins': '*'}})
 
     try:
