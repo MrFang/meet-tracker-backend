@@ -12,6 +12,14 @@ def contacts(user_id, request_data):
         error = 'Query is required'
 
     if error is None:
+        if len(query) == 0:
+            return {
+                'status': 200,
+                'success': True,
+                'error': None,
+                'data': [],
+            }
+
         contacts = db.execute(
             'SELECT * FROM contact ' +
             'WHERE (first_name || \' \' || IFNULL(second_name, \'\')) ' +
@@ -45,6 +53,14 @@ def meetings(user_id, request_data):
         error = 'Query is required'
 
     if error is None:
+        if len(query) == 0:
+            return {
+                'status': 200,
+                'success': True,
+                'error': None,
+                'data': [],
+            }
+
         meetings = db.execute(
             'SELECT * FROM meeting ' +
             'WHERE title ' +
