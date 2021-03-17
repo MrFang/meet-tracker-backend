@@ -15,6 +15,8 @@ CREATE TABLE meeting (
   title TEXT NOT NULL,
   start_datetime TEXT NOT NULL,
   end_datetime TEXT NOT NULL,
+  description TEXT,
+  notes TEXT,
   user_id INTEGER NOT NULL,
   FOREIGN KEY (user_id) REFERENCES user(id)
 );

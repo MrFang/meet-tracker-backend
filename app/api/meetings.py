@@ -9,8 +9,8 @@ def check_meeting(user_id, request_data):
     id = request_data.get('id')
     title = request_data.get('title')
     start_datetime_string = request_data.get('start_datetime')
-    contacts = request_data.get('contacts')
     end_datetime_string = request_data.get('end_datetime')
+    contacts = request_data.get('contacts')
     error = None
     db = get_db()
 
@@ -65,17 +65,26 @@ def check_meeting(user_id, request_data):
 def create(user_id, request_data):
     title = request_data.get('title')
     start_datetime_string = request_data.get('start_datetime')
-    contacts = request_data.get('contacts')
     end_datetime_string = request_data.get('end_datetime')
+    contacts = request_data.get('contacts')
+    description = request_data.get('description')
+    notes = request_data.get('notes')
     db = get_db()
     error = check_meeting(user_id, request_data)
 
     if error is None:
         db.execute(
             'INSERT INTO meeting '
-            '(title, start_datetime, end_datetime, user_id) '
-            'VALUES (?, ?, ?, ?)',
-            (title, start_datetime_string, end_datetime_string, user_id)
+            '(title, start_datetime, end_datetime, description, notes, user_id) '
+            'VALUES (?, ?, ?, ?, ?, ?)',
+            (
+                title,
+                start_datetime_string,
+                end_datetime_string,
+                description,
+                notes,
+                user_id,
+            )
         )
 
         meeting_id = db.execute(
@@ -118,7 +127,8 @@ def list(user_id, request_data):
         end_date_string = request_data.get('end_date', '9999-12-31')
 
     meetings = db.execute(
-        'SELECT id, title, start_datetime, end_datetime FROM meeting '
+        'SELECT id, title, start_datetime, end_datetime, description, notes '
+        'FROM meeting '
         'WHERE user_id = ? '
         'AND datetime(start_datetime) BETWEEN datetime(?) AND datetime (?)',
         (user_id, start_date_string + 'T00:00', end_date_string + 'T23:59')
@@ -250,8 +260,10 @@ def update(user_id, request_data):
     id = request_data.get('id')
     title = request_data.get('title')
     start_datetime_string = request_data.get('start_datetime')
-    contacts = request_data.get('contacts')
     end_datetime_string = request_data.get('end_datetime')
+    contacts = request_data.get('contacts')
+    description = request_data.get('description')
+    notes = request_data.get('notes')
     db = get_db()
     error = None
 
@@ -274,10 +286,20 @@ def update(user_id, request_data):
             'UPDATE meeting SET ' +
             'title = ?, ' +
             'start_datetime = ?, ' +
-            'end_datetime = ? ' +
+            'end_datetime = ?, ' +
+            'description = ?, ' +
+            'notes = ? ' +
             'WHERE id = ? ' +
             'AND user_id = ?',
-            (title, start_datetime_string, end_datetime_string, id, user_id)
+            (
+                title,
+                start_datetime_string,
+                end_datetime_string,
+                description,
+                notes,
+                id,
+                user_id,
+            )
         )
         existing_contacts_ids = db.execute(
             'SELECT contact.id '
